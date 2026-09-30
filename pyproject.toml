@@ -11,7 +11,7 @@ dependencies = [
     "fastapi>=0.142.0",
     "psycopg[binary]>=3.3.6",
     "pydantic-settings>=2.15.0",
-    "sqlalchemy>=2.1.1",
+    "sqlalchemy[asyncio]>=2.1.1",
 ]
 
 [project.scripts]
