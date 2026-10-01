@@ -44,7 +44,7 @@ Estos objetivos deben abordarse de manera progresiva, priorizando la comprensió
 
 * Frontend, pagos, notificaciones y telemedicina.
 * Despliegue (deployment) de cualquier tipo.
-* Autenticación y roles de usuario *(por confirmar que se quedan fuera de v1)*.
+* Autenticación y roles de usuario: excluidos de v1.
 * Observabilidad, caché y pruebas de carga: solo explicadas, no implementadas.
 * Cualquier funcionalidad adicional que no contribuya directamente a los objetivos de aprendizaje o al alcance CRUD.
 
