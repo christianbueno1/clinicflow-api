@@ -9,7 +9,6 @@ from sqlalchemy.ext.asyncio import (
 
 from clinicflow_api.config import get_settings
 
-
 settings = get_settings()
 
 engine: AsyncEngine = create_async_engine(
@@ -24,6 +23,6 @@ async_session_factory = async_sessionmaker(
 )
 
 
-async def get_session() -> AsyncGenerator[AsyncSession, None]:
+async def get_session() -> AsyncGenerator[AsyncSession]:
     async with async_session_factory() as session:
         yield session
