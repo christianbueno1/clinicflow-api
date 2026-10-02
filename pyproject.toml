@@ -25,3 +25,7 @@ build-backend = "uv_build"
 dev = [
     "ruff>=0.16.9",
 ]
+
+[tool.ruff.lint]
+# B008: Depends(...) en defaults es el patrón idiomático de FastAPI
+ignore = ["B008"]
