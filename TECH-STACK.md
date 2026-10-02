@@ -59,6 +59,11 @@ Antes de empezar cada fase que toque un framework, se revisan sus novedades (not
 FastAPI, Pydantic, SQLAlchemy, Alembic, uv) y se aplican las prácticas vigentes. Si una novedad cambia
 una decisión de este documento, se actualiza aquí y en el registro de decisiones.
 
+### Uso obligatorio de CLI tools
+
+Toda configuración o scaffolding se genera **siempre con la CLI oficial** de la herramienta
+correspondiente (`uv`, `alembic`, `podman`, `fastapi`, etc.; en otros proyectos: `ng`, `vite`, `pnpm`, `dotnet`...), nunca creando los archivos de configuración a mano desde memoria. Motivo: las CLIs emiten la estructura vigente según la versión instalada y evitan archivos desactualizados. Si una herramienta no tiene CLI para una configuración, se documenta la excepción y se genera a partir de la documentación oficial vigente.
+
 ## 8. Decisiones de arquitectura
 
 - **[Decidido]** Arquitectura de capas simples: router → servicio → acceso a datos con la sesión async. Sin Repository ni Unit of Work por ahora; se reevalúa si la complejidad lo justifica.
