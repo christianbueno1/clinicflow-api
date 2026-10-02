@@ -370,6 +370,10 @@ Las decisiones deberán registrarse y aprobarse antes de considerarse requisitos
 | 2026-10-01 | Formato estándar de errores | JSON simple: `{ "detail": "mensaje" }` |
 | 2026-10-01 | Cobertura mínima de pruebas | 80% |
 | 2026-10-01 | Entidades adicionales | Orden: `Doctor` → `Appointment` |
+| 2026-10-01 | Campo `sex` en `Patient` | Obligatorio, valores `"M"`/`"F"` |
+| 2026-10-01 | Prefijo de API | `/api/v1` |
+| 2026-10-01 | Listado de pacientes | Paginación `limit`/`offset` (default 20, máx. 100) y filtros por nombre, email, identification_number, phone, sex y age |
+| 2026-10-01 | PATCH | Parcial; `email`/`address` aceptan null para limpiar; `identification_number` de solo lectura |
 
 ---
 
