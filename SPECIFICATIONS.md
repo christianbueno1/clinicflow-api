@@ -50,11 +50,11 @@ Tabla `patients`:
 | `id` | UUID | PK, default `uuid4` |
 | `first_name` | String(100) | NOT NULL, se normaliza con `strip()` |
 | `last_name` | String(100) | NOT NULL, `strip()` |
-| `date_of_birth` | Date | NOT NULL |
-| `sex` | String(1) | NOT NULL, valores `"M"` / `"F"` |
+| `date_of_birth` | Date | NOT NULL, no futura (validación Pydantic) |
+| `sex` | String(1) / StrEnum | NOT NULL, valores `"M"` / `"F"`, constraint `ck_patients_sex` |
 | `phone` | String(30) | NOT NULL, `strip()` |
-| `identification_number` | String(50) | NOT NULL, UNIQUE, `strip().upper()` |
-| `email` | String(254) | UNIQUE, nullable, `strip().lower()` |
+| `identification_number` | String(10) | NOT NULL, UNIQUE, 10 dígitos (`^\d{10}$`, sin dígito verificador), `strip()` |
+| `email` | String(254) | UNIQUE, nullable, `strip().lower()`; cadena vacía `""` se convierte en `None` |
 | `address` | Text | nullable |
 | `created_at` | DateTime(tz) | server_default `now()` |
 | `updated_at` | DateTime(tz) | server_default `now()`, `onupdate=now()` |
@@ -62,13 +62,14 @@ Tabla `patients`:
 
 Notas:
 
-- La unicidad de `identification_number` y `email` la garantiza la base de datos (restricción UNIQUE); los duplicados se traducen a **409**.
-- `sex` se agrega al modelo (no existía) y es obligatorio en la creación.
+- La unicidad de `identification_number` y `email` la garantiza la base de datos (restricción UNIQUE) y es **global**: se aplica también frente a pacientes con borrado lógico (un paciente eliminado sigue bloqueando el valor). Los duplicados se traducen a **409**.
+- `sex` se agrega al modelo (no existía) y es obligatorio en la creación; se modela como `StrEnum` con `Enum(native_enum=False, create_constraint=True)` para evitar el ENUM nativo de PostgreSQL.
 - El borrado es lógico: `DELETE` fija `deleted_at = now()`. Todas las consultas de listado/detalle filtran `deleted_at IS NULL`; no hay forma de incluir eliminados por ahora.
+- `Base` define `naming_convention` para constraints. El mapper usa `eager_defaults` para que `updated_at`/valores por defecto estén disponibles tras UPDATE en async.
 
 ## 4. Esquemas Pydantic (`schemas/`)
 
-- `PatientCreate`: todos los campos obligatorios de creación (`first_name`, `last_name`, `date_of_birth`, `sex`, `phone`, `identification_number`); `email` y `address` opcionales.
+- `PatientCreate`: todos los campos obligatorios de creación (`first_name`, `last_name`, `date_of_birth`, `sex`, `phone`, `identification_number`); `email` y `address` opcionales. Validaciones: cédula con patrón `^\d{10}$`, `sex` enum M/F, `date_of_birth` no futura, normalización de `email` (`""` → `None`) y cédula.
 - `PatientUpdate`: todos opcionales. `email`/`address` aceptan `null` para limpiarlos. `identification_number` es de solo lectura (no se puede modificar vía PATCH). Solo se aplican los campos enviados.
 - `PatientResponse`: representación completa devuelta por la API (incluye `id`, timestamps; excluye `deleted_at`).
 - `PatientListResponse`: `{ "items": [PatientResponse], "total": int, "limit": int, "offset": int }`.
@@ -124,5 +125,9 @@ Formato uniforme: `{ "detail": "mensaje" }`. Los errores de validación de FastA
 ## 8. Convenciones
 
 - Código, tablas, columnas y rutas en **inglés**; documentación en español.
-- Rutas en plural (`/patients`), identificadores en kebab/snake según capa (Python: `snake_case`).
-- Timestamps con zona horaria (`DateTime(timezone=True)`), normalización de texto en el modelo (ver §3).
+- Estructura por capas: `routers/`, `services/`, `models/`, `schemas/` bajo `src/clinicflow_api/`. (La decisión previa de estructura plana del 2026-09-30 quedó reemplazada el 2026-10-01.)
+- Rutas en plural (`/patients`), código Python en `snake_case`.
+- Timestamps con zona horaria (`DateTime(timezone=True)`); normalización de texto en el modelo y en los esquemas (ver §3).
+- El `commit` de la sesión se hace en la capa de **servicio**, no en el router ni en la dependencia de sesión.
+- Alembic: la URL de la BD se fija en `env.py` desde `Settings` (nunca con contraseña en `alembic.ini` versionado).
+

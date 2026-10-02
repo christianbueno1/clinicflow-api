@@ -361,19 +361,7 @@ Las decisiones deberán registrarse y aprobarse antes de considerarse requisitos
 
 ## 15. Decisiones registradas
 
-| Fecha | Decisión | Detalle |
-| ----- | -------- | ------- |
-| 2026-10-01 | Atributos de `Patient` | Definidos en `src/clinicflow_api/models/patient.py` |
-| 2026-10-01 | Contrato de actualización | `PATCH` únicamente |
-| 2026-10-01 | Eliminación | Lógica, mediante `deleted_at` |
-| 2026-10-01 | Autenticación/autorización | Excluidas de v1 |
-| 2026-10-01 | Formato estándar de errores | JSON simple: `{ "detail": "mensaje" }` |
-| 2026-10-01 | Cobertura mínima de pruebas | 80% |
-| 2026-10-01 | Entidades adicionales | Orden: `Doctor` → `Appointment` |
-| 2026-10-01 | Campo `sex` en `Patient` | Obligatorio, valores `"M"`/`"F"` |
-| 2026-10-01 | Prefijo de API | `/api/v1` |
-| 2026-10-01 | Listado de pacientes | Paginación `limit`/`offset` (default 20, máx. 100) y filtros por nombre, email, identification_number, phone, sex y age |
-| 2026-10-01 | PATCH | Parcial; `email`/`address` aceptan null para limpiar; `identification_number` de solo lectura |
+El registro de decisiones vive en `CHANGELOG.md`. Este PRD conserva únicamente el alcance del producto.
 
 ---
 

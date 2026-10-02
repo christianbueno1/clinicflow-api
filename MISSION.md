@@ -34,7 +34,7 @@ Estos objetivos deben abordarse de manera progresiva, priorizando la comprensió
 ### Dentro (v1)
 
 * API REST con operaciones CRUD, enfocada solo en el backend.
-* Primera entidad: **Paciente**. Después, si se decide, Médico y Cita (ver `roadmap.md`).
+* Primera entidad: **Paciente**. Después, si se decide, Médico y Cita (ver `ROADMAP.md`).
 * Datos **simulados**: personajes y casos de la serie *Dr. House*. Nunca datos reales de personas.
 * Un solo entorno: desarrollo local.
 * Documentación de convenciones, decisiones técnicas y criterios de implementación que puedan reutilizarse en otros proyectos.
