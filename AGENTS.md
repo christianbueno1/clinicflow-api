@@ -254,6 +254,14 @@ El roadmap establece la dirección y el orden de alto nivel.
 
 El backlog transforma esa dirección en trabajo ejecutable.
 
+### Cómo se llenan los documentos operativos
+
+* `PRODUCT_BACKLOG.md` contiene únicamente **épicas e historias de usuario de alto nivel**, derivadas de `PRD.md` y `ROADMAP.md`. No contiene tareas técnicas granulares.
+* `SPRINT_BACKLOG.md` se usa para **desglosar y ordenar las tareas técnicas de la fase activa** del roadmap. Solo se detalla la fase en curso; no se adelanta el desglose de fases futuras.
+* `SPRINT_TASK.md` contiene **la tarea en desarrollo activo**, de forma individual, hasta su finalización antes de pasar a la siguiente.
+
+Flujo de ejecución: una fase del roadmap → sus tareas técnicas en `SPRINT_BACKLOG.md` → la tarea activa en `SPRINT_TASK.md` → implementación → pruebas → documentación/CHANGELOG.
+
 ---
 
 # 7. Historial y trazabilidad
