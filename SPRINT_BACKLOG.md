@@ -7,7 +7,7 @@ Leyenda de estado: **Pendiente** · **En curso** · **Hecho**.
 
 | # | Tarea | Hecho cuando | Estado |
 |---|---|---|---|
-| 5.1 | `naming_convention` en `Base` (models/base.py) | Los constraints (unique, fk, ck, pk, ix) tienen nombres deterministas; p. ej. `ck_patients_sex` | Pendiente |
+| 5.1 | `naming_convention` en `Base` (models/base.py) | Los constraints (unique, fk, ck, pk, ix) tienen nombres deterministas; p. ej. `ck_patients_sex` | Hecho |
 | 5.2 | Campo `sex` como `StrEnum` con `Enum(native_enum=False, create_constraint=True)` | La columna valida M/F y el constraint queda como `ck_patients_sex` | Pendiente |
 | 5.3 | Cédula: `identification_number` como `String(10)` y ajuste del validador (strip; sin `.upper()`) | El modelo y el validador reflejan 10 dígitos | Pendiente |
 | 5.4 | `email`: cadena vacía `""` se convierte en `None` en el `@validates` | `""` ya no se persiste como cadena | Pendiente |
