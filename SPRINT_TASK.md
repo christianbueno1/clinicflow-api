@@ -2,23 +2,20 @@
 
 > Tarea activa única. Al finalizar, marcarla Hecho en `SPRINT_BACKLOG.md`, hacer commit atómico y cargar la siguiente.
 
-## Tarea actual: 5.2 — Campo `sex` como `StrEnum`
+## Tarea actual: 5.3 — Cédula: `identification_number` como `String(10)` y ajuste del validador (strip; sin `.upper()`)
 
 **Origen:** fase 5 · HU-04 (`PRODUCT_BACKLOG.md`) · `SPECIFICATIONS.md` §3.
 
 **Qué hacer:**
 
-1. Crear `sex` en `Patient` como `StrEnum` con valores `"M"` y `"F"`.
-2. Columna: `Enum(Sex, name="sex", native_enum=False, create_constraint=True, length=1)` (o equivalente que genere el CHECK).
-3. Verificar que el constraint resultante se llame `ck_patients_sex` (según la `naming_convention` de 5.1).
+1. `identification_number` como `String(10)`.
+2. Ajustar el validador del modelo: `strip()`; sin `.upper()`.
 
 **Criterio de hecho:**
 
-- `ruff check` y `ruff format` en verde.
-- Un script/REPL imprime la columna y el constraint `ck_patients_sex`.
-- Commit atómico con Conventional Commits, p. ej. `feat(db): add sex enum to patient model`.
+- El modelo y el validador reflejan 10 dígitos.
 
 **Notas:**
 
-- `sex` es obligatorio (NOT NULL) en creación.
-- `Enum` de SQLAlchemy: revisar la firma vigente en SQLAlchemy 2.1 antes de escribirlo (regla de actualidad).
+- La validación del patrón `^\d{10}$` sigue siendo responsabilidad de los esquemas Pydantic (fase 7).
+- No hay migración aún (fase 6); el cambio afecta a la metadata del modelo y al validador.
