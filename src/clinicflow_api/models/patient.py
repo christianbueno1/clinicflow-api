@@ -1,10 +1,18 @@
 from datetime import date, datetime
+from enum import StrEnum
 from uuid import UUID, uuid4
 
-from sqlalchemy import Date, DateTime, String, Text, Uuid, func
+from sqlalchemy import Date, DateTime, Enum, String, Text, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column, validates
 
 from clinicflow_api.models.base import Base
+
+
+class Sex(StrEnum):
+    """Sexo del paciente: valores `"M"` y `"F"`."""
+
+    M = "M"
+    F = "F"
 
 
 class Patient(Base):
@@ -19,6 +27,10 @@ class Patient(Base):
     first_name: Mapped[str] = mapped_column(String(100), nullable=False)
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     date_of_birth: Mapped[date] = mapped_column(Date, nullable=False)
+    sex: Mapped[Sex] = mapped_column(
+        Enum(Sex, name="sex", native_enum=False, create_constraint=True, length=1),
+        nullable=False,
+    )
     phone: Mapped[str] = mapped_column(String(30), nullable=False)
 
     identification_number: Mapped[str] = mapped_column(
