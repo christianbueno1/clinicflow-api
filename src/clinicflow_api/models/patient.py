@@ -6,6 +6,7 @@ from sqlalchemy import Date, DateTime, Enum, String, Text, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column, validates
 
 from clinicflow_api.models.base import Base
+from clinicflow_api.validators import validar_cedula_ecuador
 
 
 class Sex(StrEnum):
@@ -41,7 +42,7 @@ class Patient(Base):
     phone: Mapped[str] = mapped_column(String(30), nullable=False)
 
     identification_number: Mapped[str] = mapped_column(
-        String(50),
+        String(10),
         unique=True,
         nullable=False,
     )
@@ -83,7 +84,12 @@ class Patient(Base):
         key: str,
         value: str,
     ) -> str:
-        return value.strip().upper()
+        cedula = value.strip()
+
+        if not validar_cedula_ecuador(cedula):
+            raise ValueError("La cédula ecuatoriana no es válida")
+
+        return cedula
 
     @validates("email")
     def normalize_email(self, key: str, value: str | None) -> str | None:
