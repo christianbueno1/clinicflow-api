@@ -51,7 +51,7 @@ Tabla `patients`:
 | `first_name` | String(100) | NOT NULL, se normaliza con `strip()` |
 | `last_name` | String(100) | NOT NULL, `strip()` |
 | `date_of_birth` | Date | NOT NULL, no futura (validación Pydantic) |
-| `sex` | String(1) / StrEnum | NOT NULL, valores `"M"` / `"F"`, constraint `ck_patients_sex` |
+| `sex` | Enum(StrEnum) / VARCHAR(6) | NOT NULL, valores `"male"` / `"female"`, constraint `ck_patients_sex` |
 | `phone` | String(30) | NOT NULL, `strip()` |
 | `identification_number` | String(10) | NOT NULL, UNIQUE, 10 dígitos (`^\d{10}$`, sin dígito verificador), `strip()` |
 | `email` | String(254) | UNIQUE, nullable, `strip().lower()`; cadena vacía `""` se convierte en `None` |
@@ -63,7 +63,7 @@ Tabla `patients`:
 Notas:
 
 - La unicidad de `identification_number` y `email` la garantiza la base de datos (restricción UNIQUE) y es **global**: se aplica también frente a pacientes con borrado lógico (un paciente eliminado sigue bloqueando el valor). Los duplicados se traducen a **409**.
-- `sex` se agrega al modelo (no existía) y es obligatorio en la creación; se modela como `StrEnum` con `Enum(native_enum=False, create_constraint=True)` para evitar el ENUM nativo de PostgreSQL.
+- `sex` se agrega al modelo (no existía) y es obligatorio en la creación; se modela como `StrEnum` con `Enum(Sex, name="sex", native_enum=False, create_constraint=True, length=6)` para evitar el ENUM nativo de PostgreSQL.
 - El borrado es lógico: `DELETE` fija `deleted_at = now()`. Todas las consultas de listado/detalle filtran `deleted_at IS NULL`; no hay forma de incluir eliminados por ahora.
 - `Base` define `naming_convention` para constraints. El mapper usa `eager_defaults` para que `updated_at`/valores por defecto estén disponibles tras UPDATE en async.
 

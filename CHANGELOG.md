@@ -33,7 +33,7 @@
 | Commit | En la capa de servicio | Confirmado |
 | Cédula | 10 dígitos (`^\d{10}$`), validación solo en Pydantic, sin dígito verificador | Confirmado 2026-09-30 |
 | `email` vacío | `""` se convierte en `None` | Evita choque de UNIQUE |
-| `sex` | `StrEnum` M/F con `Enum(native_enum=False, create_constraint=True)`, obligatorio | Confirmado |
+| `sex` | `StrEnum` male/female con `Enum(native_enum=False, create_constraint=True, length=6)`, obligatorio | Confirmado |
 | `Base` | `naming_convention` en constraints (`ck_patients_sex`, etc.) | Confirmado |
 | Sessions | `eager_defaults` en el mapper para evitar `MissingGreenlet` tras UPDATE | Confirmado |
 | Alembic | URL en `env.py` desde `Settings`; nunca contraseña en `alembic.ini` | Seguridad |
