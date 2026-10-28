@@ -2,17 +2,17 @@
 
 > Tarea activa única. Al finalizar, marcarla Hecho en `SPRINT_BACKLOG.md`, hacer commit atómico y cargar la siguiente.
 
-## Tarea actual: 5.5 — `eager_defaults` en el mapper de `Patient`
+## Tarea actual: 5.6 — Verificación del modelo: metadata SQLAlchemy, 11+1 columnas, tipos y nulabilidad, constraints únicos y de check
 
 **Origen:** fase 5 · HU-04 (`PRODUCT_BACKLOG.md`) · `SPECIFICATIONS.md` §3.
 
 **Qué hacer:**
 
-1. `eager_defaults` en el mapper de `Patient`.
+1. Verificación del modelo: metadata SQLAlchemy, 11+1 columnas, tipos y nulabilidad, constraints únicos y de check.
 
 **Criterio de hecho:**
 
-- `updated_at`/valores por defecto legibles tras UPDATE en async sin `MissingGreenlet`.
+- Script/REPL imprime la metadata correcta.
 
 **Notas:**
 
