@@ -28,7 +28,14 @@ class Patient(Base):
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     date_of_birth: Mapped[date] = mapped_column(Date, nullable=False)
     sex: Mapped[Sex] = mapped_column(
-        Enum(Sex, name="sex", native_enum=False, create_constraint=True, length=6),
+        Enum(
+            Sex,
+            name="sex",
+            native_enum=False,
+            create_constraint=True,
+            length=6,
+            values_callable=lambda enum_cls: [member.value for member in enum_cls],
+        ),
         nullable=False,
     )
     phone: Mapped[str] = mapped_column(String(30), nullable=False)
