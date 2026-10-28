@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from enum import StrEnum
+from typing import ClassVar
 from uuid import UUID, uuid4
 
 from sqlalchemy import Date, DateTime, Enum, String, Text, Uuid, func
@@ -18,6 +19,8 @@ class Sex(StrEnum):
 
 class Patient(Base):
     __tablename__ = "patients"
+
+    __mapper_args__: ClassVar[dict] = {"eager_defaults": True}
 
     id: Mapped[UUID] = mapped_column(
         Uuid(as_uuid=True),
