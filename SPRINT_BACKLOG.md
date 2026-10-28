@@ -13,4 +13,5 @@ Leyenda de estado: **Pendiente** · **En curso** · **Hecho**.
 | 5.4 | `email`: cadena vacía `""` se convierte en `None` en el `@validates` | `""` ya no se persiste como cadena | Hecho |
 | 5.5 | `eager_defaults` en el mapper de `Patient` | `updated_at`/valores por defecto legibles tras UPDATE en async sin `MissingGreenlet` | Hecho |
 | 5.6 | Verificación del modelo: metadata SQLAlchemy, 11+1 columnas, tipos y nulabilidad, constraints únicos y de check | Script/REPL imprime la metadata correcta | Hecho |
-| 5.7 | Calidad: `ruff check` y `ruff format` en verde | Sin errores ni formato pendiente | Pendiente |
+| 5.7 | Calidad: `ruff check` y `ruff format` en verde | Sin errores ni formato pendiente | Hecho |
+| 6.1 | Alembic: agregar `alembic` a dependencias, plantilla async y primera migración para `patients` | `upgrade` crea la tabla y `downgrade` la elimina | Pendiente |

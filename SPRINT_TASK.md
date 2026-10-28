@@ -2,18 +2,20 @@
 
 > Tarea activa única. Al finalizar, marcarla Hecho en `SPRINT_BACKLOG.md`, hacer commit atómico y cargar la siguiente.
 
-## Tarea actual: 5.7 — Calidad: `ruff check` y `ruff format` en verde
+## Tarea actual: 6.1 — Alembic: agregar `alembic` a dependencias y crear plantilla async + primera migración
 
-**Origen:** fase 5 · HU-04 (`PRODUCT_BACKLOG.md`) · `SPECIFICATIONS.md` §3.
+**Origen:** fase 6 · HU-05 (`PRODUCT_BACKLOG.md`) · `SPECIFICATIONS.md` §6.
 
 **Qué hacer:**
 
-1. Calidad: `ruff check` y `ruff format` en verde.
+1. Agregar `alembic` a dependencias.
+2. Crear plantilla async en `alembic/`.
+3. Generar la primera migración (tabla `patients`).
 
 **Criterio de hecho:**
 
-- Sin errores ni formato pendiente.
+- `alembic upgrade head` crea la tabla y `downgrade` la elimina.
 
 **Notas:**
 
-- No hay migración aún (fase 6).
+- URL de BD en `env.py` desde `Settings`.
