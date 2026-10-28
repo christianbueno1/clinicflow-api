@@ -96,4 +96,5 @@ class Patient(Base):
         if value is None:
             return None
 
-        return value.strip().lower()
+        normalized = value.strip().lower()
+        return normalized or None
