@@ -9,10 +9,10 @@ from clinicflow_api.models.base import Base
 
 
 class Sex(StrEnum):
-    """Sexo del paciente: valores `"M"` y `"F"`."""
+    """Sexo del paciente: valores `"male"` y `"female"`."""
 
-    M = "M"
-    F = "F"
+    MALE = "male"
+    FEMALE = "female"
 
 
 class Patient(Base):
@@ -28,7 +28,7 @@ class Patient(Base):
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     date_of_birth: Mapped[date] = mapped_column(Date, nullable=False)
     sex: Mapped[Sex] = mapped_column(
-        Enum(Sex, name="sex", native_enum=False, create_constraint=True, length=1),
+        Enum(Sex, name="sex", native_enum=False, create_constraint=True, length=6),
         nullable=False,
     )
     phone: Mapped[str] = mapped_column(String(30), nullable=False)
