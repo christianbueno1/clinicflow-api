@@ -23,16 +23,16 @@
 
 ## Bloque B — Primera entidad: Paciente, de punta a punta
 
-| # | Fase | Hecho cuando |
-|---|---|---|
-| 5 | Modelo SQLAlchemy de Paciente: `naming_convention` en `Base`, campo `sex` (StrEnum M/F), cédula `String(10)`, validadores y `eager_defaults` | El modelo existe, compila contra la BD y las convenciones quedan documentadas |
-| 6 | Alembic (plantilla async) y primera migración; URL en `env.py` desde `Settings`; agregar `alembic` a dependencias | `upgrade` crea la tabla y `downgrade` la elimina |
-| 7 | Esquemas Pydantic (crear, actualizar, leer) con validaciones: cédula `^\d{10}$`, `sex` M/F, fecha no futura, `email ""` → `None`, normalización | Datos inválidos se rechazan con error 422 claro |
-| 8 | Capa de acceso a datos y servicio según la arquitectura elegida (capas simples): crear y obtener por id; `commit` en el servicio | Funciona sin pasar por HTTP |
-| 9 | Endpoints `POST` y `GET` por id bajo `/api/v1` | Se crea y consulta un paciente desde `/docs` |
-| 10 | Endpoints de listado (paginado con filtros), actualización (`PATCH`) y borrado (lógico) | CRUD completo funcionando desde `/docs` |
-| 11 | Manejo de errores consistente (404, 409, 422) y códigos de estado | Todos los errores comparten el mismo formato; el 409 cubre también choques con pacientes borrados |
-| 12 | Datos de ejemplo (personajes y casos de *Dr. House*) con script de carga; cédulas de 10 dígitos y sexo M/F | Un comando deja la base con datos simulados |
+| # | Fase | Hecho cuando | Estado |
+|---|---|---|---|
+| 5 | Modelo SQLAlchemy de Paciente: `naming_convention` en `Base`, campo `sex` (StrEnum valores male/female), cédula `String(10)`, validadores y `eager_defaults` | El modelo existe, compila contra la BD y las convenciones quedan documentadas | Hecho |
+| 6 | Alembic (plantilla async) y primera migración; URL en `env.py` desde `Settings`; agregar `alembic` a dependencias | `upgrade` crea la tabla y `downgrade` la elimina | Hecho |
+| 7 | Esquemas Pydantic (crear, actualizar, leer) con validaciones: cédula `^\d{10}$`, `sex` male/female, fecha no futura, `email ""` → `None`, normalización | Datos inválidos se rechazan con error 422 claro | Hecho |
+| 8 | Capa de acceso a datos y servicio según la arquitectura elegida (capas simples): crear y obtener por id; `commit` en el servicio | Funciona sin pasar por HTTP | -- |
+| 9 | Endpoints `POST` y `GET` por id bajo `/api/v1` | Se crea y consulta un paciente desde `/docs` | -- |
+| 10 | Endpoints de listado (paginado con filtros), actualización (`PATCH`) y borrado (lógico) | CRUD completo funcionando desde `/docs` | -- |
+| 11 | Manejo de errores consistente (404, 409, 422) y códigos de estado | Todos los errores comparten el mismo formato; el 409 cubre también choques con pacientes borrados | -- |
+| 12 | Datos de ejemplo (personajes y casos de *Dr. House*) con script de carga; cédulas de 10 dígitos y sexo M/F | Un comando deja la base con datos simulados | -- |
 
 ## Bloque C — Calidad (se introduce ahora, no antes)
 

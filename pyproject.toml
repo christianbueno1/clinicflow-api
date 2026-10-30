@@ -8,6 +8,7 @@ authors = [
 ]
 requires-python = ">=3.14"
 dependencies = [
+    "alembic>=1.20.1",
     "fastapi[standard]>=0.142.0",
     "psycopg[binary]>=3.3.6",
     "pydantic-settings>=2.15.0",
@@ -25,3 +26,7 @@ build-backend = "uv_build"
 dev = [
     "ruff>=0.16.9",
 ]
+
+[tool.ruff.lint]
+# B008: Depends(...) en defaults es el patrón idiomático de FastAPI
+ignore = ["B008"]

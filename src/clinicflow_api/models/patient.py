@@ -1,14 +1,26 @@
 from datetime import date, datetime
+from enum import StrEnum
+from typing import ClassVar
 from uuid import UUID, uuid4
 
-from sqlalchemy import Date, DateTime, String, Text, Uuid, func
+from sqlalchemy import Date, DateTime, Enum, String, Text, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column, validates
 
 from clinicflow_api.models.base import Base
+from clinicflow_api.validators import validar_cedula_ecuador
+
+
+class Sex(StrEnum):
+    """Sexo del paciente: valores `"male"` y `"female"`."""
+
+    MALE = "male"
+    FEMALE = "female"
 
 
 class Patient(Base):
     __tablename__ = "patients"
+
+    __mapper_args__: ClassVar[dict] = {"eager_defaults": True}
 
     id: Mapped[UUID] = mapped_column(
         Uuid(as_uuid=True),
@@ -19,10 +31,21 @@ class Patient(Base):
     first_name: Mapped[str] = mapped_column(String(100), nullable=False)
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     date_of_birth: Mapped[date] = mapped_column(Date, nullable=False)
+    sex: Mapped[Sex] = mapped_column(
+        Enum(
+            Sex,
+            name="sex",
+            native_enum=False,
+            create_constraint=True,
+            length=6,
+            values_callable=lambda enum_cls: [member.value for member in enum_cls],
+        ),
+        nullable=False,
+    )
     phone: Mapped[str] = mapped_column(String(30), nullable=False)
 
     identification_number: Mapped[str] = mapped_column(
-        String(50),
+        String(10),
         unique=True,
         nullable=False,
     )
@@ -64,11 +87,17 @@ class Patient(Base):
         key: str,
         value: str,
     ) -> str:
-        return value.strip().upper()
+        cedula = value.strip()
+
+        if not validar_cedula_ecuador(cedula):
+            raise ValueError("La cédula ecuatoriana no es válida")
+
+        return cedula
 
     @validates("email")
     def normalize_email(self, key: str, value: str | None) -> str | None:
         if value is None:
             return None
 
-        return value.strip().lower()
+        normalized = value.strip().lower()
+        return normalized or None
