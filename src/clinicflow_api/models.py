@@ -15,7 +15,9 @@ from sqlalchemy import (
     Text,
     Uuid,
     func,
+    text,
 )
+from sqlalchemy.dialects.postgresql import ExcludeConstraint
 from sqlalchemy.orm import (
     DeclarativeBase,
     Mapped,
@@ -165,7 +167,23 @@ class Appointment(TimestampMixin, Base):
     __tablename__ = "appointments"
 
     __mapper_args__: ClassVar[dict] = {"eager_defaults": True}
-    __table_args__ = (CheckConstraint("ends_at > starts_at", name="ends_after_starts"),)
+    __table_args__ = (
+        CheckConstraint("ends_at > starts_at", name="ends_after_starts"),
+        ExcludeConstraint(
+            ("doctor_id", "="),
+            (func.tstzrange(text("starts_at"), text("ends_at")), "&&"),
+            where=text("status = 'scheduled'"),
+            using="gist",
+            name="ex_appointments_doctor_no_overlap",
+        ),
+        ExcludeConstraint(
+            ("patient_id", "="),
+            (func.tstzrange(text("starts_at"), text("ends_at")), "&&"),
+            where=text("status = 'scheduled'"),
+            using="gist",
+            name="ex_appointments_patient_no_overlap",
+        ),
+    )
 
     id: Mapped[UUID] = mapped_column(
         Uuid(as_uuid=True), primary_key=True, default=uuid4
