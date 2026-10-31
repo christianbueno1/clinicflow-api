@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 
 from clinicflow_api.config import get_settings
 from clinicflow_api.enums import AppointmentStatus
+from clinicflow_api.exceptions import ConflictError, NotFoundError
 from clinicflow_api.models import Appointment, Doctor, Patient, Specialty
 from clinicflow_api.repositories import (
     AppointmentRepository,
@@ -29,14 +30,6 @@ from clinicflow_api.schemas import (
 
 # Campos que admiten null explícito en un PATCH
 _PATIENT_NULLABLE = {"email", "address"}
-
-
-class NotFoundError(Exception):
-    pass
-
-
-class ConflictError(Exception):
-    pass
 
 
 class SpecialtyService:
