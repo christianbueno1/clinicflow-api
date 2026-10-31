@@ -198,3 +198,17 @@ class AppointmentRead(BaseModel):
     status: AppointmentStatus
     created_at: datetime
     updated_at: datetime
+
+
+class Slot(BaseModel):
+    starts_at: datetime
+    ends_at: datetime
+    available: bool
+
+
+class AvailabilityRead(BaseModel):
+    doctor_id: UUID
+    day: date
+    timezone: str
+    slot_minutes: int
+    slots: list[Slot]

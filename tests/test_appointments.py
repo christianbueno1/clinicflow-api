@@ -1,6 +1,8 @@
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta, timezone
 
 from tests.conftest import future
+
+ECU = timezone(timedelta(hours=-5))
 
 
 async def test_create_calculates_ends_at(book, make_patient, make_doctor):
@@ -164,3 +166,33 @@ async def test_cannot_delete_doctor_or_patient_with_future_appointments(
 
     assert (await client.delete(f"/doctors/{doctor['id']}")).status_code == 204
     assert (await client.delete(f"/patients/{patient['id']}")).status_code == 204
+
+
+async def test_availability_marks_booked_slots(client, book, make_patient, make_doctor):
+    doctor = await make_doctor()
+    day = (datetime.now(ECU) + timedelta(days=7)).date()
+    start = datetime.combine(day, time(9, 0), tzinfo=ECU)
+    await book(await make_patient(), doctor, start, 45)
+
+    r = await client.get(
+        f"/doctors/{doctor['id']}/availability", params={"date": day.isoformat()}
+    )
+    assert r.status_code == 200
+    slots = {
+        datetime.fromisoformat(s["starts_at"]): s["available"]
+        for s in r.json()["slots"]
+    }
+    assert slots[start] is False
+    assert (
+        slots[start + timedelta(minutes=30)] is False
+    )  # el 09:30 cae dentro de los 45 min
+    assert slots[start + timedelta(minutes=60)] is True
+
+
+async def test_availability_of_inactive_doctor_is_409(client, make_doctor):
+    doctor = await make_doctor()
+    await client.patch(f"/doctors/{doctor['id']}", json={"is_active": False})
+    r = await client.get(
+        f"/doctors/{doctor['id']}/availability", params={"date": "2030-01-01"}
+    )
+    assert r.status_code == 409
