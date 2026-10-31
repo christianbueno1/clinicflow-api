@@ -24,6 +24,9 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.4.1",
     "ruff>=0.16.9",
 ]
 
@@ -36,3 +39,8 @@ extend-exclude = ["alembic/versions"]
 
 [tool.ruff.lint.per-file-ignores]
 "src/clinicflow_api/models.py" = ["UP037"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
