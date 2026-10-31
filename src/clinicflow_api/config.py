@@ -13,6 +13,7 @@ class Settings(BaseSettings):
 
     debug: bool = False
     api_base_url: str = "http://localhost:8000"
+    cors_origins: list[str] = ["http://localhost:4200"]
 
     model_config = SettingsConfigDict(
         env_file=".env",
