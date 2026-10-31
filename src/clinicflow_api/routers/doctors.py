@@ -5,7 +5,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from clinicflow_api.database import get_session
-from clinicflow_api.repositories import DoctorRepository, SpecialtyRepository
+from clinicflow_api.repositories import (
+    AppointmentRepository,
+    DoctorRepository,
+    SpecialtyRepository,
+)
 from clinicflow_api.schemas import DoctorCreate, DoctorRead, DoctorUpdate
 from clinicflow_api.services import ConflictError, DoctorService, NotFoundError
 
@@ -15,7 +19,11 @@ router = APIRouter(prefix="/doctors", tags=["doctors"])
 def get_service(
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> DoctorService:
-    return DoctorService(DoctorRepository(session), SpecialtyRepository(session))
+    return DoctorService(
+        DoctorRepository(session),
+        SpecialtyRepository(session),
+        AppointmentRepository(session),
+    )
 
 
 Service = Annotated[DoctorService, Depends(get_service)]
@@ -68,3 +76,5 @@ async def delete_doctor(doctor_id: UUID, service: Service):
         await service.delete(doctor_id)
     except NotFoundError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+    except ConflictError as exc:  # nuevo
+        raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc

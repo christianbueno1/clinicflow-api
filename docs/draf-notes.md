@@ -128,3 +128,9 @@ curl -i $BASE/doctors/$WILSON               # 404
 podman exec -it clinicflow-db-box psql -U krs -d clinicflow_db \
   -c "SELECT last_name, is_active, deleted_at FROM doctors ORDER BY last_name;"
 
+```
+
+## Pytest
+
+```bash
+uv add --dev pytest pytest-asyncio httpx
