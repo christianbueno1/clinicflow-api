@@ -1,12 +1,11 @@
-from uuid import UUID
-
-from pydantic import BaseModel, ConfigDict, Field, field_validator, StringConstraints
-
 from datetime import datetime
 from typing import Annotated
+from uuid import UUID
 
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
 from clinicflow_api.validators import validar_cedula_ecuador
+
 
 class SpecialtyBase(BaseModel):
     name: str = Field(min_length=2, max_length=100)
@@ -36,8 +35,12 @@ class SpecialtyRead(SpecialtyBase):
     id: UUID
 
 
-Name = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
-LicenseNumber = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=50)]
+Name = Annotated[
+    str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)
+]
+LicenseNumber = Annotated[
+    str, StringConstraints(strip_whitespace=True, min_length=1, max_length=50)
+]
 
 
 def _check_cedula(value: str | None) -> str | None:

@@ -30,3 +30,9 @@ dev = [
 [tool.ruff.lint]
 # B008: Depends(...) en defaults es el patrón idiomático de FastAPI
 ignore = ["B008"]
+
+[tool.ruff]
+extend-exclude = ["alembic/versions"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/clinicflow_api/models.py" = ["UP037"]

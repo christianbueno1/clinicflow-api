@@ -47,9 +47,7 @@ async def get_specialty(specialty_id: UUID, service: Service):
 
 
 @router.patch("/{specialty_id}", response_model=SpecialtyRead)
-async def update_specialty(
-    specialty_id: UUID, data: SpecialtyUpdate, service: Service
-):
+async def update_specialty(specialty_id: UUID, data: SpecialtyUpdate, service: Service):
     try:
         return await service.update(specialty_id, data)
     except NotFoundError as exc:

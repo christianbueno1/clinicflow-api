@@ -1,11 +1,11 @@
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import select
-from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
-from clinicflow_api.models import Specialty, Doctor
-
+from clinicflow_api.models import Doctor, Specialty
 
 
 class SpecialtyRepository:
@@ -41,7 +41,6 @@ class SpecialtyRepository:
     async def delete(self, specialty: Specialty) -> None:
         await self.session.delete(specialty)
         await self.session.commit()
-
 
 
 class DoctorRepository:
