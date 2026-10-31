@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Annotated
 from uuid import UUID
 
@@ -10,7 +11,12 @@ from clinicflow_api.repositories import (
     DoctorRepository,
     SpecialtyRepository,
 )
-from clinicflow_api.schemas import DoctorCreate, DoctorRead, DoctorUpdate
+from clinicflow_api.schemas import (
+    AvailabilityRead,
+    DoctorCreate,
+    DoctorRead,
+    DoctorUpdate,
+)
 from clinicflow_api.services import ConflictError, DoctorService, NotFoundError
 
 router = APIRouter(prefix="/doctors", tags=["doctors"])
@@ -77,4 +83,19 @@ async def delete_doctor(doctor_id: UUID, service: Service):
     except NotFoundError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
     except ConflictError as exc:  # nuevo
+        raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
+
+
+@router.get("/{doctor_id}/availability", response_model=AvailabilityRead)
+async def get_availability(
+    doctor_id: UUID,
+    service: Service,
+    day: Annotated[date, Query(alias="date")],
+    slot_minutes: Annotated[int, Query(ge=5, le=240)] = 30,
+):
+    try:
+        return await service.availability(doctor_id, day, slot_minutes)
+    except NotFoundError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+    except ConflictError as exc:
         raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
