@@ -1,9 +1,17 @@
-from datetime import datetime
+from datetime import UTC, date, datetime
 from typing import Annotated
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    StringConstraints,
+    field_validator,
+)
 
+from clinicflow_api.enums import Sex
 from clinicflow_api.validators import validar_cedula_ecuador
 
 
@@ -84,5 +92,61 @@ class DoctorRead(BaseModel):
     license_number: str
     is_active: bool
     specialty: SpecialtyRead
+    created_at: datetime
+    updated_at: datetime
+
+
+Phone = Annotated[
+    str, StringConstraints(strip_whitespace=True, pattern=r"^\+?[0-9 ]{7,20}$")
+]
+Address = Annotated[str, StringConstraints(strip_whitespace=True, max_length=500)]
+
+
+def _check_birth_date(value: date | None) -> date | None:
+    if value is not None and value > datetime.now(UTC).date():
+        raise ValueError("La fecha de nacimiento no puede ser futura")
+    return value
+
+
+class PatientCreate(BaseModel):
+    first_name: Name
+    last_name: Name
+    date_of_birth: date
+    sex: Sex
+    phone: Phone
+    identification_number: str
+    email: EmailStr | None = None
+    address: Address | None = None
+
+    _validate_cedula = field_validator("identification_number")(_check_cedula)
+    _validate_birth = field_validator("date_of_birth")(_check_birth_date)
+
+
+class PatientUpdate(BaseModel):
+    first_name: Name | None = None
+    last_name: Name | None = None
+    date_of_birth: date | None = None
+    sex: Sex | None = None
+    phone: Phone | None = None
+    identification_number: str | None = None
+    email: EmailStr | None = None
+    address: Address | None = None
+
+    _validate_cedula = field_validator("identification_number")(_check_cedula)
+    _validate_birth = field_validator("date_of_birth")(_check_birth_date)
+
+
+class PatientRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    first_name: str
+    last_name: str
+    date_of_birth: date
+    sex: Sex
+    phone: str
+    identification_number: str
+    email: str | None
+    address: str | None
     created_at: datetime
     updated_at: datetime
