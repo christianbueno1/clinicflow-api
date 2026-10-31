@@ -3,6 +3,7 @@ from typing import Annotated
 from uuid import UUID
 
 from pydantic import (
+    AwareDatetime,
     BaseModel,
     ConfigDict,
     EmailStr,
@@ -11,7 +12,7 @@ from pydantic import (
     field_validator,
 )
 
-from clinicflow_api.enums import Sex
+from clinicflow_api.enums import AppointmentStatus, Sex
 from clinicflow_api.validators import validar_cedula_ecuador
 
 
@@ -148,5 +149,52 @@ class PatientRead(BaseModel):
     identification_number: str
     email: str | None
     address: str | None
+    created_at: datetime
+    updated_at: datetime
+
+
+Reason = Annotated[str, StringConstraints(strip_whitespace=True, max_length=255)]
+
+
+def _check_future(value: AwareDatetime | None) -> AwareDatetime | None:
+    if value is not None and value <= datetime.now(UTC):
+        raise ValueError("La cita debe agendarse en el futuro")
+    return value
+
+
+class AppointmentCreate(BaseModel):
+    patient_id: UUID
+    doctor_id: UUID
+    starts_at: AwareDatetime
+    duration_minutes: int = Field(default=30, ge=5, le=480)
+    reason: Reason | None = None
+
+    _validate_future = field_validator("starts_at")(_check_future)
+
+
+class AppointmentUpdate(BaseModel):
+    """Reprogramar o cambiar el motivo. El estado tiene su propio endpoint."""
+
+    starts_at: AwareDatetime | None = None
+    duration_minutes: int | None = Field(default=None, ge=5, le=480)
+    reason: Reason | None = None
+
+    _validate_future = field_validator("starts_at")(_check_future)
+
+
+class AppointmentStatusUpdate(BaseModel):
+    status: AppointmentStatus
+
+
+class AppointmentRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    patient_id: UUID
+    doctor_id: UUID
+    starts_at: datetime
+    ends_at: datetime
+    reason: str | None
+    status: AppointmentStatus
     created_at: datetime
     updated_at: datetime

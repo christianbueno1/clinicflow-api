@@ -5,7 +5,8 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from clinicflow_api.models import Doctor, Patient, Specialty
+from clinicflow_api.enums import AppointmentStatus
+from clinicflow_api.models import Appointment, Doctor, Patient, Specialty
 
 
 class SpecialtyRepository:
@@ -166,3 +167,95 @@ class PatientRepository:
     async def soft_delete(self, patient: Patient) -> None:
         patient.deleted_at = datetime.now(UTC)
         await self.session.commit()
+
+
+class AppointmentRepository:
+    def __init__(self, session: AsyncSession) -> None:
+        self.session = session
+
+    async def get(self, appointment_id: UUID) -> Appointment | None:
+        result = await self.session.execute(
+            select(Appointment).where(Appointment.id == appointment_id)
+        )
+        return result.scalar_one_or_none()
+
+    async def list(
+        self,
+        skip: int = 0,
+        limit: int = 50,
+        patient_id: UUID | None = None,
+        doctor_id: UUID | None = None,
+        status: AppointmentStatus | None = None,
+        date_from: datetime | None = None,
+        date_to: datetime | None = None,
+    ) -> list[Appointment]:
+        stmt = (
+            select(Appointment)
+            .order_by(Appointment.starts_at)
+            .offset(skip)
+            .limit(limit)
+        )
+        if patient_id is not None:
+            stmt = stmt.where(Appointment.patient_id == patient_id)
+        if doctor_id is not None:
+            stmt = stmt.where(Appointment.doctor_id == doctor_id)
+        if status is not None:
+            stmt = stmt.where(Appointment.status == status)
+        if date_from is not None:
+            stmt = stmt.where(Appointment.starts_at >= date_from)
+        if date_to is not None:
+            stmt = stmt.where(Appointment.starts_at < date_to)
+        result = await self.session.execute(stmt)
+        return list(result.scalars())
+
+    async def has_overlap(
+        self,
+        *,
+        starts_at: datetime,
+        ends_at: datetime,
+        doctor_id: UUID | None = None,
+        patient_id: UUID | None = None,
+        exclude_id: UUID | None = None,
+    ) -> bool:
+        stmt = (
+            select(Appointment.id)
+            .where(
+                Appointment.status == AppointmentStatus.SCHEDULED,
+                Appointment.starts_at < ends_at,
+                Appointment.ends_at > starts_at,
+            )
+            .limit(1)
+        )
+        if doctor_id is not None:
+            stmt = stmt.where(Appointment.doctor_id == doctor_id)
+        if patient_id is not None:
+            stmt = stmt.where(Appointment.patient_id == patient_id)
+        if exclude_id is not None:
+            stmt = stmt.where(Appointment.id != exclude_id)
+        return (await self.session.execute(stmt)).first() is not None
+
+    async def has_future_scheduled(
+        self, *, patient_id: UUID | None = None, doctor_id: UUID | None = None
+    ) -> bool:
+        stmt = (
+            select(Appointment.id)
+            .where(
+                Appointment.status == AppointmentStatus.SCHEDULED,
+                Appointment.starts_at > datetime.now(UTC),
+            )
+            .limit(1)
+        )
+        if patient_id is not None:
+            stmt = stmt.where(Appointment.patient_id == patient_id)
+        if doctor_id is not None:
+            stmt = stmt.where(Appointment.doctor_id == doctor_id)
+        return (await self.session.execute(stmt)).first() is not None
+
+    def add(self, appointment: Appointment) -> None:
+        self.session.add(appointment)
+
+    async def save(self, appointment: Appointment) -> Appointment:
+        """Confirma la transacción y recarga los valores generados por la DB."""
+        await self.session.commit()
+        await self.session.refresh(appointment)
+        return appointment
