@@ -5,6 +5,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from clinicflow_api.database import engine, get_session
+from clinicflow_api.routers import specialties
 
 
 @asynccontextmanager
@@ -19,6 +20,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.include_router(specialties.router)
 
 @app.get("/health")
 async def health():
