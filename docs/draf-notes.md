@@ -134,3 +134,21 @@ podman exec -it clinicflow-db-box psql -U krs -d clinicflow_db \
 
 ```bash
 uv add --dev pytest pytest-asyncio httpx
+podman exec -it clinicflow-db-box psql -U krs -d postgres -c "CREATE DATABASE clinicflow_test;"
+# En pyproject.toml:
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+##
+# Estructura
+tests/
+├── conftest.py
+├── test_catalog.py
+└── test_appointments.py
+#
+touch tests/conftest.py
+touch tests/test_catalog.py
+touch tests/test_appointments.py
+
+# exporta la variable en tu shell
+export TEST_DATABASE_URL="postgresql+psycopg://krs:TU_PASSWORD@localhost:5432/clinicflow_test"
