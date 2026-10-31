@@ -11,6 +11,7 @@ from clinicflow_api.routers import appointments, doctors, patients, specialties
 
 settings = get_settings()
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     yield

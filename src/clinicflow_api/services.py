@@ -1,8 +1,10 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 from sqlalchemy.exc import IntegrityError
 
+from clinicflow_api.config import get_settings
 from clinicflow_api.enums import AppointmentStatus
 from clinicflow_api.models import Appointment, Doctor, Patient, Specialty
 from clinicflow_api.repositories import (
@@ -15,10 +17,12 @@ from clinicflow_api.schemas import (
     AppointmentCreate,
     AppointmentStatusUpdate,
     AppointmentUpdate,
+    AvailabilityRead,
     DoctorCreate,
     DoctorUpdate,
     PatientCreate,
     PatientUpdate,
+    Slot,
     SpecialtyCreate,
     SpecialtyUpdate,
 )
@@ -145,6 +149,42 @@ class DoctorService:
         if await self.appointments.has_future_scheduled(doctor_id=doctor_id):
             raise ConflictError("El doctor tiene citas programadas")
         await self.repo.soft_delete(doctor)
+
+    async def availability(
+        self, doctor_id: UUID, day: date, slot_minutes: int
+    ) -> AvailabilityRead:
+        doctor = await self.get(doctor_id)
+        if not doctor.is_active:
+            raise ConflictError("El doctor no está activo")
+
+        cfg = get_settings()
+        tz = ZoneInfo(cfg.clinic_timezone)
+        open_at = datetime.combine(day, cfg.clinic_open, tzinfo=tz)
+        close_at = datetime.combine(day, cfg.clinic_close, tzinfo=tz)
+        step = timedelta(minutes=slot_minutes)
+
+        booked = await self.appointments.list_scheduled_between(
+            doctor_id, open_at, close_at
+        )
+        now = datetime.now(tz)
+
+        slots: list[Slot] = []
+        cursor = open_at
+        while cursor + step <= close_at:
+            end = cursor + step
+            busy = any(a.starts_at < end and a.ends_at > cursor for a in booked)
+            slots.append(
+                Slot(starts_at=cursor, ends_at=end, available=not busy and cursor > now)
+            )
+            cursor = end
+
+        return AvailabilityRead(
+            doctor_id=doctor_id,
+            day=day,
+            timezone=cfg.clinic_timezone,
+            slot_minutes=slot_minutes,
+            slots=slots,
+        )
 
 
 class PatientService:

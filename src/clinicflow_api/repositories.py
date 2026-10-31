@@ -259,3 +259,16 @@ class AppointmentRepository:
         await self.session.commit()
         await self.session.refresh(appointment)
         return appointment
+
+    async def list_scheduled_between(
+        self, doctor_id: UUID, start: datetime, end: datetime
+    ) -> list[Appointment]:
+        result = await self.session.execute(
+            select(Appointment).where(
+                Appointment.doctor_id == doctor_id,
+                Appointment.status == AppointmentStatus.SCHEDULED,
+                Appointment.starts_at < end,
+                Appointment.ends_at > start,
+            )
+        )
+        return list(result.scalars())
