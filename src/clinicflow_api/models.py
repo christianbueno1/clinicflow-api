@@ -78,7 +78,9 @@ class AppointmentStatus(StrEnum):
 class Specialty(Base):
     __tablename__ = "specialties"
 
-    id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid4)
+    id: Mapped[UUID] = mapped_column(
+        Uuid(as_uuid=True), primary_key=True, default=uuid4
+    )
     name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
 
     doctors: Mapped[list["Doctor"]] = relationship(back_populates="specialty")
@@ -93,7 +95,9 @@ class Doctor(TimestampMixin, Base):
 
     __mapper_args__: ClassVar[dict] = {"eager_defaults": True}
 
-    id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid4)
+    id: Mapped[UUID] = mapped_column(
+        Uuid(as_uuid=True), primary_key=True, default=uuid4
+    )
     first_name: Mapped[str] = mapped_column(String(100), nullable=False)
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     identification_number: Mapped[str] = mapped_column(
@@ -126,7 +130,9 @@ class Patient(TimestampMixin, Base):
 
     __mapper_args__: ClassVar[dict] = {"eager_defaults": True}
 
-    id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid4)
+    id: Mapped[UUID] = mapped_column(
+        Uuid(as_uuid=True), primary_key=True, default=uuid4
+    )
     first_name: Mapped[str] = mapped_column(String(100), nullable=False)
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     date_of_birth: Mapped[date] = mapped_column(Date, nullable=False)
@@ -177,7 +183,9 @@ class Appointment(TimestampMixin, Base):
     __mapper_args__: ClassVar[dict] = {"eager_defaults": True}
     __table_args__ = (CheckConstraint("ends_at > starts_at", name="ends_after_starts"),)
 
-    id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid4)
+    id: Mapped[UUID] = mapped_column(
+        Uuid(as_uuid=True), primary_key=True, default=uuid4
+    )
 
     patient_id: Mapped[UUID] = mapped_column(
         ForeignKey("patients.id", ondelete="RESTRICT"), index=True, nullable=False
@@ -205,4 +213,4 @@ class Appointment(TimestampMixin, Base):
     )
 
     patient: Mapped["Patient"] = relationship(back_populates="appointments")
-    doctor: Mapped["Doctor"] = relationship(back_populates="appointments")# pega aquí el contenido completo de models.py
+    doctor: Mapped["Doctor"] = relationship(back_populates="appointments")
