@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from clinicflow_api.database import get_session
+from clinicflow_api.exceptions import ConflictError, NotFoundError
 from clinicflow_api.repositories import (
     AppointmentRepository,
     DoctorRepository,
@@ -17,7 +18,7 @@ from clinicflow_api.schemas import (
     DoctorRead,
     DoctorUpdate,
 )
-from clinicflow_api.services import ConflictError, DoctorService, NotFoundError
+from clinicflow_api.services import DoctorService
 
 router = APIRouter(prefix="/doctors", tags=["doctors"])
 

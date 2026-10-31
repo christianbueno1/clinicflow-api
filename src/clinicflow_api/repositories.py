@@ -2,10 +2,12 @@ from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from clinicflow_api.enums import AppointmentStatus
+from clinicflow_api.exceptions import ConflictError
 from clinicflow_api.models import Appointment, Doctor, Patient, Specialty
 
 
@@ -255,8 +257,13 @@ class AppointmentRepository:
         self.session.add(appointment)
 
     async def save(self, appointment: Appointment) -> Appointment:
-        """Confirma la transacción y recarga los valores generados por la DB."""
-        await self.session.commit()
+        try:
+            await self.session.commit()
+        except IntegrityError as exc:
+            await self.session.rollback()
+            if getattr(exc.orig, "sqlstate", None) == "23P01":  # exclusion_violation
+                raise ConflictError("La cita se solapa con otra existente") from exc
+            raise
         await self.session.refresh(appointment)
         return appointment
 

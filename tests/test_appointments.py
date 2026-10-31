@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, time, timedelta, timezone
 
 from tests.conftest import future
@@ -196,3 +197,13 @@ async def test_availability_of_inactive_doctor_is_409(client, make_doctor):
         f"/doctors/{doctor['id']}/availability", params={"date": "2030-01-01"}
     )
     assert r.status_code == 409
+
+
+async def test_concurrent_bookings_only_one_wins(book, make_patient, make_doctor):
+    doctor = await make_doctor()
+    p1, p2 = await make_patient(), await make_patient()
+    start = future()
+
+    r1, r2 = await asyncio.gather(book(p1, doctor, start), book(p2, doctor, start))
+
+    assert sorted([r1.status_code, r2.status_code]) == [201, 409]

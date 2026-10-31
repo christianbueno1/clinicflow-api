@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from clinicflow_api.database import get_session
 from clinicflow_api.enums import AppointmentStatus
+from clinicflow_api.exceptions import ConflictError, NotFoundError
 from clinicflow_api.repositories import (
     AppointmentRepository,
     DoctorRepository,
@@ -18,7 +19,7 @@ from clinicflow_api.schemas import (
     AppointmentStatusUpdate,
     AppointmentUpdate,
 )
-from clinicflow_api.services import AppointmentService, ConflictError, NotFoundError
+from clinicflow_api.services import AppointmentService
 
 router = APIRouter(prefix="/appointments", tags=["appointments"])
 

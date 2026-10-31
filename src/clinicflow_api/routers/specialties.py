@@ -5,9 +5,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from clinicflow_api.database import get_session
+from clinicflow_api.exceptions import ConflictError, NotFoundError
 from clinicflow_api.repositories import SpecialtyRepository
 from clinicflow_api.schemas import SpecialtyCreate, SpecialtyRead, SpecialtyUpdate
-from clinicflow_api.services import ConflictError, NotFoundError, SpecialtyService
+from clinicflow_api.services import SpecialtyService
 
 router = APIRouter(prefix="/specialties", tags=["specialties"])
 
