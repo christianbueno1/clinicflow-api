@@ -1,7 +1,6 @@
 """Modelos ORM de ClinicFlow."""
 
 from datetime import date, datetime
-from enum import StrEnum
 from typing import ClassVar
 from uuid import UUID, uuid4
 
@@ -25,6 +24,7 @@ from sqlalchemy.orm import (
     validates,
 )
 
+from clinicflow_api.enums import AppointmentStatus, Sex
 from clinicflow_api.validators import validar_cedula_ecuador
 
 NAMING_CONVENTION = {
@@ -57,22 +57,6 @@ class TimestampMixin:
     deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True, default=None
     )
-
-
-class Sex(StrEnum):
-    """Sexo del paciente: valores `"male"` y `"female"`."""
-
-    MALE = "male"
-    FEMALE = "female"
-
-
-class AppointmentStatus(StrEnum):
-    """Estado de la cita."""
-
-    SCHEDULED = "scheduled"
-    COMPLETED = "completed"
-    CANCELLED = "cancelled"
-    NO_SHOW = "no_show"
 
 
 class Specialty(Base):

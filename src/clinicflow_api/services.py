@@ -2,14 +2,23 @@ from uuid import UUID
 
 from sqlalchemy.exc import IntegrityError
 
-from clinicflow_api.models import Doctor, Specialty
-from clinicflow_api.repositories import DoctorRepository, SpecialtyRepository
+from clinicflow_api.models import Doctor, Patient, Specialty
+from clinicflow_api.repositories import (
+    DoctorRepository,
+    PatientRepository,
+    SpecialtyRepository,
+)
 from clinicflow_api.schemas import (
     DoctorCreate,
     DoctorUpdate,
+    PatientCreate,
+    PatientUpdate,
     SpecialtyCreate,
     SpecialtyUpdate,
 )
+
+# Campos que admiten null explícito en un PATCH
+_PATIENT_NULLABLE = {"email", "address"}
 
 
 class NotFoundError(Exception):
@@ -124,3 +133,55 @@ class DoctorService:
     async def delete(self, doctor_id: UUID) -> None:
         doctor = await self.get(doctor_id)
         await self.repo.soft_delete(doctor)
+
+
+class PatientService:
+    def __init__(self, repo: PatientRepository) -> None:
+        self.repo = repo
+
+    async def _ensure_unique(self, data: dict, current: Patient | None = None) -> None:
+        number = data.get("identification_number")
+        if (
+            number
+            and (current is None or number != current.identification_number)
+            and await self.repo.get_by_identification(number)
+        ):
+            raise ConflictError("Ya existe un paciente con esa cédula")
+
+        email = data.get("email")
+        if email:
+            email = email.strip().lower()
+            if (
+                current is None or email != current.email
+            ) and await self.repo.get_by_email(email):
+                raise ConflictError("Ya existe un paciente con ese email")
+
+    async def create(self, data: PatientCreate) -> Patient:
+        payload = data.model_dump()
+        await self._ensure_unique(payload)
+        return await self.repo.add(Patient(**payload))
+
+    async def get(self, patient_id: UUID) -> Patient:
+        patient = await self.repo.get(patient_id)
+        if patient is None:
+            raise NotFoundError("Paciente no encontrado")
+        return patient
+
+    async def list(self, **filters) -> list[Patient]:
+        return await self.repo.list(**filters)
+
+    async def update(self, patient_id: UUID, data: PatientUpdate) -> Patient:
+        patient = await self.get(patient_id)
+        changes = {
+            k: v
+            for k, v in data.model_dump(exclude_unset=True).items()
+            if v is not None or k in _PATIENT_NULLABLE
+        }
+        await self._ensure_unique(changes, current=patient)
+        for field, value in changes.items():
+            setattr(patient, field, value)
+        return await self.repo.update(patient)
+
+    async def delete(self, patient_id: UUID) -> None:
+        patient = await self.get(patient_id)
+        await self.repo.soft_delete(patient)
