@@ -151,3 +151,5 @@ uv run ruff check --fix . && uv run ruff format .
 # Listar las bases de datos de la BD local en Podman
 podman exec clinicflow-db-box psql -U krs -d clinicflow_db -x -c "\l"
 ```
+
+Referencia de la API para el frontend: docs/API_REFERENCE.md.

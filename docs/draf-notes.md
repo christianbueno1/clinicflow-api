@@ -152,3 +152,10 @@ touch tests/test_appointments.py
 
 # exporta la variable en tu shell
 export TEST_DATABASE_URL="postgresql+psycopg://krs:TU_PASSWORD@localhost:5432/clinicflow_test"
+
+```
+
+## Docs
+
+```bash
+uv run python -c "import json; from clinicflow_api.main import app; print(json.dumps(app.openapi(), indent=2, ensure_ascii=False))" > docs/openapi.json
