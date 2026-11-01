@@ -159,3 +159,15 @@ export TEST_DATABASE_URL="postgresql+psycopg://krs:TU_PASSWORD@localhost:5432/cl
 
 ```bash
 uv run python -c "import json; from clinicflow_api.main import app; print(json.dumps(app.openapi(), indent=2, ensure_ascii=False))" > docs/openapi.json
+```
+
+## Seed
+
+```bash
+uv run python scripts/seed_bulk.py --doctors 60 --patients 120
+uv run python scripts/seed_bulk.py --doctors 60 --patients 120   # repetir: no duplica
+
+curl -s "$BASE/doctors?limit=100" | jq length
+curl -s "$BASE/doctors?skip=50&limit=25" | jq length
+curl -s "$BASE/doctors?is_active=false&limit=100" | jq length
+```
