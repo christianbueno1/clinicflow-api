@@ -21,6 +21,13 @@ uv run ruff format --check src/clinicflow_api/models/base.py
 ```bash
 uv run alembic revision --autogenerate -m "add patients table"
 uv run alembic upgrade head
+
+# Probar que es reversible
+uv run alembic downgrade -1
+uv run alembic upgrade head
+
+# Comprobar que modelo y base coinciden
+uv run alembic revision --autogenerate -m check
 ```
 
 ## Database
@@ -187,7 +194,7 @@ uv run python -c "import json; from clinicflow_api.main import app; print(json.d
 jq '.paths["/doctors"].get.responses["200"].content["application/json"].schema' docs/openapi.json
 ```
 
-## Bulk
+## Bulk, Ruff, Pytest
 
 ```bash
 uv run ruff check --fix . && uv run ruff format .
@@ -196,6 +203,9 @@ uv run python scripts/seed_bulk.py --doctors 0 --patients 0 --extra 'Urología:2
 
 uv run python scripts/seed_bulk.py --doctors 0 --patients 0 --extra 'Oncología:45'
 uv run python scripts/seed_bulk.py --doctors 0 --patients 0 --extra 'Urología:25' --extra 'Oncología:45'
+
+#
+uv run ruff check . && uv run ruff format --check . && uv run pytest -q
 
 # verificar doctores elimnados
 podman exec clinicflow-db-box psql -U krs -d clinicflow_db -c \
