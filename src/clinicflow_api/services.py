@@ -8,6 +8,7 @@ from clinicflow_api.config import get_settings
 from clinicflow_api.enums import AppointmentStatus
 from clinicflow_api.exceptions import ConflictError, NotFoundError
 from clinicflow_api.models import Appointment, Doctor, Patient, Specialty
+from clinicflow_api.pagination import paginated
 from clinicflow_api.repositories import (
     AppointmentRepository,
     DoctorRepository,
@@ -119,8 +120,11 @@ class DoctorService:
             raise NotFoundError("Doctor no encontrado")
         return doctor
 
-    async def list(self, **filters) -> list[Doctor]:
-        return await self.repo.list(**filters)
+    async def list(self, *, page: int, page_size: int, **filters) -> dict:
+        items, total = await self.repo.list_page(
+            page=page, page_size=page_size, **filters
+        )
+        return paginated(items, total, page, page_size)
 
     async def update(self, doctor_id: UUID, data: DoctorUpdate) -> Doctor:
         doctor = await self.get(doctor_id)
@@ -215,8 +219,9 @@ class PatientService:
             raise NotFoundError("Paciente no encontrado")
         return patient
 
-    async def list(self, **filters) -> list[Patient]:
-        return await self.repo.list(**filters)
+    async def list(self, *, page: int, page_size: int, q: str | None = None) -> dict:
+        items, total = await self.repo.list_page(page=page, page_size=page_size, q=q)
+        return paginated(items, total, page, page_size)
 
     async def update(self, patient_id: UUID, data: PatientUpdate) -> Patient:
         patient = await self.get(patient_id)

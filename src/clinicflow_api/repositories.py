@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import or_, select
+from sqlalchemy import ColumnElement, func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -106,6 +106,41 @@ class DoctorRepository:
         doctor.deleted_at = datetime.now(UTC)
         await self.session.commit()
 
+    @staticmethod
+    def _conditions(
+        specialty_id: UUID | None, is_active: bool | None
+    ) -> list[ColumnElement[bool]]:
+        conds: list[ColumnElement[bool]] = [Doctor.deleted_at.is_(None)]
+        if specialty_id is not None:
+            conds.append(Doctor.specialty_id == specialty_id)
+        if is_active is not None:
+            conds.append(Doctor.is_active == is_active)
+        return conds
+
+    async def list_page(
+        self,
+        *,
+        page: int,
+        page_size: int,
+        specialty_id: UUID | None = None,
+        is_active: bool | None = None,
+    ) -> tuple[list[Doctor], int]:
+        conds = self._conditions(specialty_id, is_active)
+        total = (
+            await self.session.execute(
+                select(func.count()).select_from(Doctor).where(*conds)
+            )
+        ).scalar_one()
+        result = await self.session.execute(
+            select(Doctor)
+            .options(joinedload(Doctor.specialty))
+            .where(*conds)
+            .order_by(Doctor.last_name, Doctor.first_name, Doctor.id)  # id desempata
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
+        return list(result.scalars()), total
+
 
 class PatientRepository:
     def __init__(self, session: AsyncSession) -> None:
@@ -169,6 +204,38 @@ class PatientRepository:
     async def soft_delete(self, patient: Patient) -> None:
         patient.deleted_at = datetime.now(UTC)
         await self.session.commit()
+
+    @staticmethod
+    def _conditions(q: str | None) -> list[ColumnElement[bool]]:
+        conds: list[ColumnElement[bool]] = [Patient.deleted_at.is_(None)]
+        if q and q.strip():
+            like = f"%{q.strip()}%"
+            conds.append(
+                or_(
+                    Patient.first_name.ilike(like),
+                    Patient.last_name.ilike(like),
+                    Patient.identification_number.ilike(like),
+                )
+            )
+        return conds
+
+    async def list_page(
+        self, *, page: int, page_size: int, q: str | None = None
+    ) -> tuple[list[Patient], int]:
+        conds = self._conditions(q)
+        total = (
+            await self.session.execute(
+                select(func.count()).select_from(Patient).where(*conds)
+            )
+        ).scalar_one()
+        result = await self.session.execute(
+            select(Patient)
+            .where(*conds)
+            .order_by(Patient.last_name, Patient.first_name, Patient.id)
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
+        return list(result.scalars()), total
 
 
 class AppointmentRepository:

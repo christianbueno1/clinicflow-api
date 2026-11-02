@@ -90,7 +90,7 @@ class Doctor(TimestampMixin, Base):
         String(10), unique=True, nullable=False
     )
     license_number: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
-    is_active: Mapped[bool] = mapped_column(default=True, nullable=False)
+    is_active: Mapped[bool] = mapped_column(default=True, nullable=False, index=True)
 
     specialty_id: Mapped[UUID] = mapped_column(
         ForeignKey("specialties.id", ondelete="RESTRICT"), index=True, nullable=False
