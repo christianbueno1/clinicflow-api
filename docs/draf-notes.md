@@ -171,3 +171,13 @@ curl -s "$BASE/doctors?limit=100" | jq length
 curl -s "$BASE/doctors?skip=50&limit=25" | jq length
 curl -s "$BASE/doctors?is_active=false&limit=100" | jq length
 ```
+
+## OpenAPI
+
+```bash
+# 1. El primer comando: Exportar el esquema OpenAPI a un archivo JSON
+uv run python -c "import json; from clinicflow_api.main import app; print(json.dumps(app.openapi(), indent=2, ensure_ascii=False))" > docs/openapi.json
+
+# 2. El segundo comando: Consultar la estructura de la respuesta con jq
+jq '.paths["/doctors"].get.responses["200"].content["application/json"].schema' docs/openapi.json
+```
