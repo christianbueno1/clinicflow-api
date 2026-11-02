@@ -27,6 +27,7 @@ from sqlalchemy.orm import (
 )
 
 from clinicflow_api.enums import AppointmentStatus, Sex
+from clinicflow_api.text_utils import normalize_key
 from clinicflow_api.validators import validar_cedula_ecuador
 
 NAMING_CONVENTION = {
@@ -68,12 +69,15 @@ class Specialty(Base):
         Uuid(as_uuid=True), primary_key=True, default=uuid4
     )
     name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    name_key: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
 
     doctors: Mapped[list["Doctor"]] = relationship(back_populates="specialty")
 
     @validates("name")
     def normalize_name(self, key: str, value: str) -> str:
-        return value.strip()
+        cleaned = " ".join(value.split())
+        self.name_key = normalize_key(cleaned)
+        return cleaned
 
 
 class Doctor(TimestampMixin, Base):
