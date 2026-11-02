@@ -30,6 +30,11 @@ podman exec -it clinicflow-db-box psql -U krs -d clinicflow_db -c '\dt'
 podman exec -it clinicflow-db-box psql -U krs -d clinicflow_db -c '\d patients'
 # para imprimar en vertical
 podman exec -it clinicflow-db-box psql -U krs -d clinicflow_db -x -c 'select * from patients;'
+podman exec -it clinicflow-db-box psql -U krs -d clinicflow_db -c 'select * from specialties order by name;'
+# extrae los doctores que son de Urologia
+podman exec -it clinicflow-db-box psql -U krs -d clinicflow_db -c "select d.first_name, d.last_name, s.name as specialty from doctors d join specialties s on s.id = d.specialty_id where s.name = 'Urologia';"
+# busca en tabla doctors por specialty_id 5885e82c-a775-4af6-bcb8-166b6bdadf14 sin join
+podman exec -it clinicflow-db-box psql -U krs -d clinicflow_db -c "select * from doctors where specialty_id = '5885e82c-a775-4af6-bcb8-166b6bdadf14';"
 
 # revision de Alembic
 podman exec -it clinicflow-db-box psql -U krs -d clinicflow_db \
@@ -180,4 +185,36 @@ uv run python -c "import json; from clinicflow_api.main import app; print(json.d
 
 # 2. El segundo comando: Consultar la estructura de la respuesta con jq
 jq '.paths["/doctors"].get.responses["200"].content["application/json"].schema' docs/openapi.json
+```
+
+## Bulk
+
+```bash
+uv run ruff check --fix . && uv run ruff format .
+uv run python scripts/seed_bulk.py --doctors 0 --patients 0 --extra 'Urología:25'
+uv run python scripts/seed_bulk.py --doctors 0 --patients 0 --extra 'Urología:25'   # no duplica
+
+uv run python scripts/seed_bulk.py --doctors 0 --patients 0 --extra 'Oncología:45'
+uv run python scripts/seed_bulk.py --doctors 0 --patients 0 --extra 'Urología:25' --extra 'Oncología:45'
+
+# verificar doctores elimnados
+podman exec clinicflow-db-box psql -U krs -d clinicflow_db -c \
+"SELECT d.last_name, d.first_name, d.license_number, s.name AS especialidad, d.is_active, d.deleted_at
+ FROM doctors d JOIN specialties s ON s.id = d.specialty_id
+ WHERE d.deleted_at IS NOT NULL
+ ORDER BY d.deleted_at DESC;"
+
+# solo contarlos
+podman exec clinicflow-db-box psql -U krs -d clinicflow_db -c \
+"SELECT count(*) AS eliminados FROM doctors WHERE deleted_at IS NOT NULL;"
+
+# Y si prefieres salida vertical (una columna por línea), añade -x después de psql:
+podman exec clinicflow-db-box psql -U krs -d clinicflow_db -x -c \
+"SELECT * FROM doctors WHERE deleted_at IS NOT NULL;"
+
+podman exec clinicflow-db-box psql -U krs -d clinicflow_db -c \
+"SELECT s.name, count(d.id) AS doctores
+ FROM specialties s LEFT JOIN doctors d ON d.specialty_id = s.id
+ WHERE s.name IN ('Urologia','Urología') GROUP BY s.name;"
+
 ```
