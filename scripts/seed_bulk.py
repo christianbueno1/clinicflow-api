@@ -274,14 +274,16 @@ def extra_doctor_rows(specs: list[tuple[str, int]]) -> list[tuple]:
         h = zlib.crc32(spec.encode()) % 1000
         slug = _slug(spec)
         for i in range(1, count + 1):
-            rows.append((
-                rng.choice(FIRST_POOL),
-                rng.choice(LAST_POOL),
-                make_cedula(f"174{h:03d}{i:03d}"),
-                f"GA-X-{slug}-{i:03d}",
-                spec,
-                i % 5 != 0,
-            ))
+            rows.append(
+                (
+                    rng.choice(FIRST_POOL),
+                    rng.choice(LAST_POOL),
+                    make_cedula(f"174{h:03d}{i:03d}"),
+                    f"GA-X-{slug}-{i:03d}",
+                    spec,
+                    i % 5 != 0,
+                )
+            )
     return rows
 
 
