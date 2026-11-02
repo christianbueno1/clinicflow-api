@@ -7,6 +7,8 @@ Uso:
 import argparse
 import asyncio
 import random
+import unicodedata
+import zlib
 from datetime import date, datetime, time, timedelta, timezone
 
 from seed import get_or_create, make_cedula
@@ -191,15 +193,23 @@ def appointment_starts(n: int) -> list[datetime]:
     return starts[:n]
 
 
-async def seed(n_doctors: int, n_patients: int, n_appointments: int) -> None:
+async def seed(
+    n_doctors: int,
+    n_patients: int,
+    n_appointments: int,
+    extra: list[tuple[str, int]],
+) -> None:
     async with async_session_factory() as session:
+        names = list(dict.fromkeys(SPECIALTIES + [s for s, _ in extra]))
         specialties = {
             name: await get_or_create(session, Specialty, {"name": name})
-            for name in SPECIALTIES
+            for name in names
         }
 
         doctors: list[Doctor] = []
-        for first, last, cedula, lic, spec, active in doctor_rows(n_doctors):
+        for first, last, cedula, lic, spec, active in doctor_rows(
+            n_doctors
+        ) + extra_doctor_rows(extra):
             doctors.append(
                 await get_or_create(
                     session,
@@ -251,10 +261,42 @@ async def seed(n_doctors: int, n_patients: int, n_appointments: int) -> None:
     print(f"Seed bulk OK: {len(total_d)} doctores y {len(total_p)} pacientes en total")
 
 
+def _slug(name: str) -> str:
+    ascii_name = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode()
+    return "".join(c for c in ascii_name.upper() if c.isalnum())[:30]
+
+
+def extra_doctor_rows(specs: list[tuple[str, int]]) -> list[tuple]:
+    """Doctores extra por especialidad. Las claves dependen del nombre, no del orden."""
+    rows = []
+    for spec, count in specs:
+        rng = random.Random(f"extra-{spec}")  # nombres estables por especialidad
+        h = zlib.crc32(spec.encode()) % 1000
+        slug = _slug(spec)
+        for i in range(1, count + 1):
+            rows.append((
+                rng.choice(FIRST_POOL),
+                rng.choice(LAST_POOL),
+                make_cedula(f"174{h:03d}{i:03d}"),
+                f"GA-X-{slug}-{i:03d}",
+                spec,
+                i % 5 != 0,
+            ))
+    return rows
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--doctors", type=int, default=50)
     parser.add_argument("--patients", type=int, default=100)
     parser.add_argument("--appointments", type=int, default=0)
+    parser.add_argument(
+        "--extra",
+        action="append",
+        default=[],
+        metavar="ESPECIALIDAD:N",
+        help="Doctores extra de una especialidad, p. ej. Urología:25 (repetible)",
+    )
     args = parser.parse_args()
-    asyncio.run(seed(args.doctors, args.patients, args.appointments))
+    extra = [(n.strip(), int(c)) for n, c in (e.rsplit(":", 1) for e in args.extra)]
+    asyncio.run(seed(args.doctors, args.patients, args.appointments, extra))
