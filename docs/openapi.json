@@ -280,18 +280,19 @@
         "operationId": "list_doctors_doctors_get",
         "parameters": [
           {
-            "name": "skip",
+            "name": "page",
             "in": "query",
             "required": false,
             "schema": {
               "type": "integer",
-              "minimum": 0,
-              "default": 0,
-              "title": "Skip"
+              "maximum": 1000000,
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
             }
           },
           {
-            "name": "limit",
+            "name": "page_size",
             "in": "query",
             "required": false,
             "schema": {
@@ -299,7 +300,7 @@
               "maximum": 100,
               "minimum": 1,
               "default": 50,
-              "title": "Limit"
+              "title": "Page Size"
             }
           },
           {
@@ -342,11 +343,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/DoctorRead"
-                  },
-                  "title": "Response List Doctors Doctors Get"
+                  "$ref": "#/components/schemas/Page_DoctorRead_"
                 }
               }
             }
@@ -605,18 +602,19 @@
         "operationId": "list_patients_patients_get",
         "parameters": [
           {
-            "name": "skip",
+            "name": "page",
             "in": "query",
             "required": false,
             "schema": {
               "type": "integer",
-              "minimum": 0,
-              "default": 0,
-              "title": "Skip"
+              "maximum": 1000000,
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
             }
           },
           {
-            "name": "limit",
+            "name": "page_size",
             "in": "query",
             "required": false,
             "schema": {
@@ -624,7 +622,7 @@
               "maximum": 100,
               "minimum": 1,
               "default": 50,
-              "title": "Limit"
+              "title": "Page Size"
             }
           },
           {
@@ -651,11 +649,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PatientRead"
-                  },
-                  "title": "Response List Patients Patients Get"
+                  "$ref": "#/components/schemas/Page_PatientRead_"
                 }
               }
             }
@@ -1573,6 +1567,78 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "Page_DoctorRead_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DoctorRead"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          },
+          "total_pages": {
+            "type": "integer",
+            "title": "Total Pages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size",
+          "total_pages"
+        ],
+        "title": "Page[DoctorRead]"
+      },
+      "Page_PatientRead_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PatientRead"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          },
+          "total_pages": {
+            "type": "integer",
+            "title": "Total Pages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size",
+          "total_pages"
+        ],
+        "title": "Page[PatientRead]"
       },
       "PatientCreate": {
         "properties": {
