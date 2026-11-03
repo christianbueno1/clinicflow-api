@@ -17,6 +17,7 @@ from sqlalchemy import select
 from clinicflow_api.database import async_session_factory, engine
 from clinicflow_api.enums import Sex
 from clinicflow_api.models import Appointment, Doctor, Patient, Specialty
+from clinicflow_api.text_utils import normalize_key
 
 ECU = timezone(timedelta(hours=-5))
 
@@ -202,7 +203,9 @@ async def seed(
     async with async_session_factory() as session:
         names = list(dict.fromkeys(SPECIALTIES + [s for s, _ in extra]))
         specialties = {
-            name: await get_or_create(session, Specialty, {"name": name})
+            name: await get_or_create(
+                session, Specialty, {"name_key": normalize_key(name)}, name=name
+            )
             for name in names
         }
 
@@ -274,14 +277,16 @@ def extra_doctor_rows(specs: list[tuple[str, int]]) -> list[tuple]:
         h = zlib.crc32(spec.encode()) % 1000
         slug = _slug(spec)
         for i in range(1, count + 1):
-            rows.append((
-                rng.choice(FIRST_POOL),
-                rng.choice(LAST_POOL),
-                make_cedula(f"174{h:03d}{i:03d}"),
-                f"GA-X-{slug}-{i:03d}",
-                spec,
-                i % 5 != 0,
-            ))
+            rows.append(
+                (
+                    rng.choice(FIRST_POOL),
+                    rng.choice(LAST_POOL),
+                    make_cedula(f"174{h:03d}{i:03d}"),
+                    f"GA-X-{slug}-{i:03d}",
+                    spec,
+                    i % 5 != 0,
+                )
+            )
     return rows
 
 

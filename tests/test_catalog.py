@@ -15,6 +15,33 @@ async def test_specialty_duplicate_and_delete_with_doctors(
     assert blocked.status_code == 409
 
 
+@pytest.mark.parametrize("variant", ["Urologia", "UROLOGÍA", "urologia"])
+async def test_specialty_create_equivalent_name_returns_409(
+    client, make_specialty, variant
+):
+    await make_specialty("Urología")
+    r = await client.post("/specialties", json={"name": variant})
+    assert r.status_code == 409
+    assert variant in r.json()["detail"]
+
+
+async def test_specialty_update_to_equivalent_name_returns_409(client, make_specialty):
+    await make_specialty("Urología")
+    other = await make_specialty("Cardiología")
+    r = await client.patch(f"/specialties/{other['id']}", json={"name": "Urologia"})
+    assert r.status_code == 409
+
+    unchanged = await client.get(f"/specialties/{other['id']}")
+    assert unchanged.json()["name"] == "Cardiología"
+
+
+async def test_specialty_update_own_name_accent_is_allowed(client, make_specialty):
+    s = await make_specialty("Urologia")
+    r = await client.patch(f"/specialties/{s['id']}", json={"name": "Urología"})
+    assert r.status_code == 200
+    assert r.json()["name"] == "Urología"
+
+
 async def test_doctor_validations(client, make_doctor, make_specialty):
     s = await make_specialty()
     d = await make_doctor()

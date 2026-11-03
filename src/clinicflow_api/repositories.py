@@ -7,8 +7,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from clinicflow_api.enums import AppointmentStatus
-from clinicflow_api.exceptions import ConflictError
+from clinicflow_api.exceptions import ConflictError, SpecialtyAlreadyExistsError
 from clinicflow_api.models import Appointment, Doctor, Patient, Specialty
+
+SPECIALTY_UNIQUE_CONSTRAINTS = {"uq_specialties_name", "uq_specialties_name_key"}
+
+
+def _violated_constraint(exc: IntegrityError) -> str | None:
+    diag = getattr(exc.orig, "diag", None)
+    return getattr(diag, "constraint_name", None)
 
 
 class SpecialtyRepository:
@@ -32,12 +39,20 @@ class SpecialtyRepository:
 
     async def add(self, specialty: Specialty) -> Specialty:
         self.session.add(specialty)
-        await self.session.commit()
-        await self.session.refresh(specialty)
-        return specialty
+        return await self._commit(specialty)
 
     async def update(self, specialty: Specialty) -> Specialty:
-        await self.session.commit()
+        return await self._commit(specialty)
+
+    async def _commit(self, specialty: Specialty) -> Specialty:
+        name = specialty.name
+        try:
+            await self.session.commit()
+        except IntegrityError as exc:
+            await self.session.rollback()
+            if _violated_constraint(exc) in SPECIALTY_UNIQUE_CONSTRAINTS:
+                raise SpecialtyAlreadyExistsError(name) from exc
+            raise
         await self.session.refresh(specialty)
         return specialty
 
