@@ -15,6 +15,7 @@ from clinicflow_api.models import (
     Sex,
     Specialty,
 )
+from clinicflow_api.text_utils import normalize_key
 from clinicflow_api.validators import validar_cedula_ecuador
 
 ECU = timezone(timedelta(hours=-5))
@@ -178,7 +179,9 @@ async def get_or_create(session: AsyncSession, model, lookup: dict, **values):
 async def seed() -> None:
     async with async_session_factory() as session:
         specialties = {
-            name: await get_or_create(session, Specialty, {"name": name})
+            name: await get_or_create(
+                session, Specialty, {"name_key": normalize_key(name)}, name=name
+            )
             for name in SPECIALTIES
         }
 
