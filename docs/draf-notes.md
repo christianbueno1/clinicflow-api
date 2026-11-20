@@ -21,6 +21,13 @@ uv run ruff format --check src/clinicflow_api/models/base.py
 ```bash
 uv run alembic revision --autogenerate -m "add patients table"
 uv run alembic upgrade head
+
+# Probar que es reversible
+uv run alembic downgrade -1
+uv run alembic upgrade head
+
+# Comprobar que modelo y base coinciden
+uv run alembic revision --autogenerate -m check
 ```
 
 ## Database
@@ -30,6 +37,11 @@ podman exec -it clinicflow-db-box psql -U krs -d clinicflow_db -c '\dt'
 podman exec -it clinicflow-db-box psql -U krs -d clinicflow_db -c '\d patients'
 # para imprimar en vertical
 podman exec -it clinicflow-db-box psql -U krs -d clinicflow_db -x -c 'select * from patients;'
+podman exec -it clinicflow-db-box psql -U krs -d clinicflow_db -c 'select * from specialties order by name;'
+# extrae los doctores que son de Urologia
+podman exec -it clinicflow-db-box psql -U krs -d clinicflow_db -c "select d.first_name, d.last_name, s.name as specialty from doctors d join specialties s on s.id = d.specialty_id where s.name = 'Urologia';"
+# busca en tabla doctors por specialty_id 5885e82c-a775-4af6-bcb8-166b6bdadf14 sin join
+podman exec -it clinicflow-db-box psql -U krs -d clinicflow_db -c "select * from doctors where specialty_id = '5885e82c-a775-4af6-bcb8-166b6bdadf14';"
 
 # revision de Alembic
 podman exec -it clinicflow-db-box psql -U krs -d clinicflow_db \
@@ -159,3 +171,60 @@ export TEST_DATABASE_URL="postgresql+psycopg://krs:TU_PASSWORD@localhost:5432/cl
 
 ```bash
 uv run python -c "import json; from clinicflow_api.main import app; print(json.dumps(app.openapi(), indent=2, ensure_ascii=False))" > docs/openapi.json
+```
+
+## Seed
+
+```bash
+uv run python scripts/seed_bulk.py --doctors 60 --patients 120
+uv run python scripts/seed_bulk.py --doctors 60 --patients 120   # repetir: no duplica
+
+curl -s "$BASE/doctors?limit=100" | jq length
+curl -s "$BASE/doctors?skip=50&limit=25" | jq length
+curl -s "$BASE/doctors?is_active=false&limit=100" | jq length
+```
+
+## OpenAPI
+
+```bash
+# 1. El primer comando: Exportar el esquema OpenAPI a un archivo JSON
+uv run python -c "import json; from clinicflow_api.main import app; print(json.dumps(app.openapi(), indent=2, ensure_ascii=False))" > docs/openapi.json
+
+# 2. El segundo comando: Consultar la estructura de la respuesta con jq
+jq '.paths["/doctors"].get.responses["200"].content["application/json"].schema' docs/openapi.json
+```
+
+## Bulk, Ruff, Pytest
+
+```bash
+uv run ruff check --fix . && uv run ruff format .
+uv run python scripts/seed_bulk.py --doctors 0 --patients 0 --extra 'Urología:25'
+uv run python scripts/seed_bulk.py --doctors 0 --patients 0 --extra 'Urología:25'   # no duplica
+
+uv run python scripts/seed_bulk.py --doctors 0 --patients 0 --extra 'Oncología:45'
+uv run python scripts/seed_bulk.py --doctors 0 --patients 0 --extra 'Urología:25' --extra 'Oncología:45'
+
+#
+uv run ruff check . && uv run ruff format --check . && uv run pytest -q
+
+# verificar doctores elimnados
+podman exec clinicflow-db-box psql -U krs -d clinicflow_db -c \
+"SELECT d.last_name, d.first_name, d.license_number, s.name AS especialidad, d.is_active, d.deleted_at
+ FROM doctors d JOIN specialties s ON s.id = d.specialty_id
+ WHERE d.deleted_at IS NOT NULL
+ ORDER BY d.deleted_at DESC;"
+
+# solo contarlos
+podman exec clinicflow-db-box psql -U krs -d clinicflow_db -c \
+"SELECT count(*) AS eliminados FROM doctors WHERE deleted_at IS NOT NULL;"
+
+# Y si prefieres salida vertical (una columna por línea), añade -x después de psql:
+podman exec clinicflow-db-box psql -U krs -d clinicflow_db -x -c \
+"SELECT * FROM doctors WHERE deleted_at IS NOT NULL;"
+
+podman exec clinicflow-db-box psql -U krs -d clinicflow_db -c \
+"SELECT s.name, count(d.id) AS doctores
+ FROM specialties s LEFT JOIN doctors d ON d.specialty_id = s.id
+ WHERE s.name IN ('Urologia','Urología') GROUP BY s.name;"
+
+```

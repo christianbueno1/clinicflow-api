@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from clinicflow_api.database import get_session
 from clinicflow_api.exceptions import ConflictError, NotFoundError
+from clinicflow_api.pagination import Page
 from clinicflow_api.repositories import (
     AppointmentRepository,
     DoctorRepository,
@@ -46,16 +47,19 @@ async def create_doctor(data: DoctorCreate, service: Service):
         raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
 
 
-@router.get("", response_model=list[DoctorRead])
+@router.get("", response_model=Page[DoctorRead])
 async def list_doctors(
     service: Service,
-    skip: Annotated[int, Query(ge=0)] = 0,
-    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    page: Annotated[int, Query(ge=1, le=1_000_000)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 50,
     specialty_id: UUID | None = None,
     is_active: bool | None = None,
 ):
     return await service.list(
-        skip=skip, limit=limit, specialty_id=specialty_id, is_active=is_active
+        page=page,
+        page_size=page_size,
+        specialty_id=specialty_id,
+        is_active=is_active,
     )
 
 
